@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyTok Simple</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background-color: #000000;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 500px;
+      height: 100%;
+      max-height: 900px;
+      background: #000000;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #202020, 0 18px 40px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .feed {
+      flex: 1;
+      overflow-y: auto;
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+      background-color: #000000;
+    }
+
+    .feed::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+    }
+
+    .video-screen {
+      position: relative;
+      min-height: 100%;
+      height: 100%;
+      scroll-snap-align: start;
+    }
+
+    .video-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .controls {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+    }
+
+    .pause-btn {
+      width: 60px;
+      height: 60px;
+      padding: 0;
+      border-radius: 50%;
+      border: none;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: #ffffff;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="feed">
+      <section class="video-screen">
+        <video class="video-bg" src="v2.mp4" autoplay muted loop playsinline></video>
+        <div class="controls">
+          <button class="pause-btn">Pause</button>
+        </div>
+      </section>
+
+      <section class="video-screen">
+        <video class="video-bg" src="video2.mp4" autoplay muted loop playsinline></video>
+        <div class="controls">
+          <button class="pause-btn">Pause</button>
+        </div>
+      </section>
+
+      <section class="video-screen">
+        <video class="video-bg" src="video3.mp4" autoplay muted loop playsinline></video>
+        <div class="controls">
+          <button class="pause-btn">Pause</button>
+        </div>
+      </section>
+
+      <section class="video-screen">
+        <video class="video-bg" src="video4.mp4" autoplay muted loop playsinline></video>
+        <div class="controls">
+          <button class="pause-btn">Pause</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script>
+    const screens = document.querySelectorAll('.video-screen');
+    const timers = new Map();
+    const feed = document.querySelector('.feed');
+    let currentIndex = 0;
+    let isScrolling = false;
+
+    if (feed) {
+      feed.addEventListener('wheel', function (event) {
+        event.preventDefault();
+        if (isScrolling) return;
+
+        if (event.deltaY > 0 && currentIndex < screens.length - 1) {
+          currentIndex++;
+        } else if (event.deltaY < 0 && currentIndex > 0) {
+          currentIndex--;
+        } else {
+          return;
+        }
+
+        isScrolling = true;
+        screens[currentIndex].scrollIntoView({ behavior: 'smooth' });
+        setTimeout(function () {
+          isScrolling = false;
+        }, 500);
+      }, { passive: false });
+    }
+
+    function startAutoPause(video) {
+      clearAutoPause(video);
+      const id = setTimeout(function () {
+        video.pause();
+      }, 5000);
+      timers.set(video, id);
+    }
+
+    function clearAutoPause(video) {
+      const id = timers.get(video);
+      if (id) {
+        clearTimeout(id);
+        timers.delete(video);
+      }
+    }
+
+    screens.forEach(function (screen) {
+      const video = screen.querySelector('video');
+      const btn = screen.querySelector('.pause-btn');
+
+      if (!video || !btn) return;
+
+      btn.addEventListener('click', function () {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+        const controls = btn.parentElement;
+        if (controls) {
+          controls.style.display = 'none';
+        }
+      });
+
+      video.addEventListener('play', function () {
+        btn.textContent = 'Pause';
+        startAutoPause(video);
+      });
+
+      video.addEventListener('pause', function () {
+        btn.textContent = 'Play';
+        clearAutoPause(video);
+      });
+
+      video.addEventListener('click', function () {
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
